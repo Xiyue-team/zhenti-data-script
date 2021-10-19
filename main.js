@@ -122,6 +122,12 @@ json.forEach((item) => {
     })
 })
 
+ebook.chapter.forEach((chapter) => {
+    chapter.subject.forEach((subject) => {
+        chapter.total += subject.total;
+    })
+})
+
 fs.writeFile('./output/zhentiji.json', JSON.stringify(ebook), 'utf-8', (err) => {
     if (err) {
         console.log('写入失败');
