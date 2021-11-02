@@ -76,7 +76,7 @@ class Until {
         switch (item.topicType) {
             case '例题': type = topicType.example; break;
             case '图形题': type = topicType.figure; break;
-            case '拍照题': type = topicType.photograph; break;
+            case '拍照题': type = topicType.text; break;
         }
         return type;
     }

@@ -148,6 +148,7 @@ ebook.chapter.forEach((chapter) => {
     chapter.subject.forEach((subject) => {
         chapter.total += subject.total;
     })
+    chapter.topicTotal = chapter.subject.length;
 })
 
 fs.writeFile('./output/zhentiji.json', JSON.stringify(ebook), 'utf-8', (err) => {

@@ -7,7 +7,8 @@ const modifyVersion = 'version1';
 const topicType = {
     example: 'example',
     figure: 'figure',
-    photograph: 'photograph'
+    photograph: 'photograph',
+    text: 'text'
 }
 
 module.exports = {
