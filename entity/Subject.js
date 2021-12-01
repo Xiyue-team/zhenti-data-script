@@ -3,6 +3,7 @@ class Subject {
     total = 0;
     coverImg = [];
     components = [];
+    isFree = false;
     topic = [];
 
     constructor() {

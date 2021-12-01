@@ -66,6 +66,16 @@ class Until {
             case '专题7': info.name = 'topic7'; info.num = 7; info.chineseName = '专题七'; break;
             case '专题8': info.name = 'topic8'; info.num = 8; info.chineseName = '专题八'; break;
             case '专题9': info.name = 'topic9'; info.num = 9; info.chineseName = '专题九'; break;
+            case '专题10': info.name = 'topic10'; info.num = 10; info.chineseName = '专题十'; break;
+            case '专题11': info.name = 'topic11'; info.num = 11; info.chineseName = '专题十一'; break;
+            case '专题12': info.name = 'topic12'; info.num = 12; info.chineseName = '专题十二'; break;
+            case '专题13': info.name = 'topic13'; info.num = 13; info.chineseName = '专题十三'; break;
+            case '专题14': info.name = 'topic14'; info.num = 14; info.chineseName = '专题十四'; break;
+            case '专题15': info.name = 'topic15'; info.num = 15; info.chineseName = '专题十五'; break;
+            case '专题16': info.name = 'topic16'; info.num = 16; info.chineseName = '专题十六'; break;
+            case '专题17': info.name = 'topic17'; info.num = 17; info.chineseName = '专题十七'; break;
+            case '专题18': info.name = 'topic18'; info.num = 18; info.chineseName = '专题十八'; break;
+            case '专题19': info.name = 'topic19'; info.num = 19; info.chineseName = '专题十九'; break;
         }
         return info;
     }

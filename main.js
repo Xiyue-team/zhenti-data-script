@@ -77,6 +77,8 @@ json.forEach((item) => {
                 sub.title = item.gradeName;
                 sub.coverImg.push("${workspace}/img/" +
                     `${until.getGradeCode(item.grade).name}/${until.getSubjectCode(item).name}/introduce.png`);
+                sub.coverImg.push("${workspace}/img/" +
+                    `${until.getGradeCode(item.grade).name}/${until.getSubjectCode(item).name}/drawing.png`);
                 subjectComponents.forEach((component) => {
                     if (component.grade === item.grade && component.gradeName === item.gradeName) {
                         const comp = new Components();
@@ -91,6 +93,8 @@ json.forEach((item) => {
                     }
                 })
                 chapter.subject.push(sub);
+                // 每个年级专题一免费
+                chapter.subject[0].isFree = true;
             }
             subject = item.gradeName;
         }

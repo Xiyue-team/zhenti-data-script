@@ -1,5 +1,6 @@
-const topicUrl = 'E:/UI/专题';
-const videoUrl = 'E:/UI/动画';
+const topicUrl = 'E:/ebook/专题';
+const videoUrl = 'E:/ebook/动画';
+const drawingUrl = 'E:/ebook/封面'
 const jsonUrl = 'E:/workspace_node/huohua-exercise-book/src/assets/src/zhenti.json'
 
 const modifyVersion = 'version1';
@@ -16,5 +17,6 @@ module.exports = {
     videoUrl: videoUrl,
     jsonUrl: jsonUrl,
     modifyVersion: modifyVersion,
-    topicType: topicType
+    topicType: topicType,
+    drawingUrl: drawingUrl
 }

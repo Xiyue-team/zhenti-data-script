@@ -5,6 +5,7 @@ const util = new Util();
 const imagemin = require('imagemin');
 const imageminMozjpeg = require("imagemin-mozjpeg");
 const imageminPngquant = require('imagemin-pngquant');
+const drawingUrl = require('./config').drawingUrl;
 
 // fs.rmdir(`./null`, (err) => {
 //     if(err){
@@ -23,14 +24,20 @@ fs.readdir(topicUrl, (err, data) => {
 
     data.forEach((gradeName) => {
         const fileName = util.getGradeCodebyNum(gradeName).name;
-        fs.mkdir(`./output/picture/${fileName}`, (err) => {
-            if (err) {
-                console.log(err);
-                console.log('\033[;31m', `创建${fileName}文件夹失败`);
+        fs.exists(`./output/picture/${fileName}`, (isExist) => {
+            if (isExist) {
+                createdTopic(gradeName, fileName);
                 return;
             }
-            console.log('\033[;32m', `创建${fileName}文件夹成功`);
-            createdTopic(gradeName, fileName);
+            fs.mkdir(`./output/picture/${fileName}`, (err) => {
+                if (err) {
+                    console.log(err);
+                    console.log('\033[;31m', `创建${fileName}文件夹失败`);
+                    return;
+                }
+                console.log('\033[;32m', `创建${fileName}文件夹成功`);
+                createdTopic(gradeName, fileName);
+            })
         })
     })
 })
@@ -43,32 +50,48 @@ function createdTopic(gradeName, fileName) {
         }
         data.forEach((topic) => {
             const num = topic.split('专题')[1];
-            fs.mkdir(`./output/picture/${fileName}/topic${num}`, (err) => {
-                if (err) {
-                    console.log('\033[;31m', `创建${fileName}文件夹失败`);
+            fs.exists(`./output/picture/${fileName}/topic${num}`, (isExist) => {
+                if (isExist) {
+                    createAnsQue(`./output/picture/${fileName}/topic${num}`);
                     return;
                 }
-                console.log('\033[;32m', `创建${fileName}文件夹成功`);
-                createAnsQue(`./output/picture/${fileName}/topic${num}`);
+                fs.mkdir(`./output/picture/${fileName}/topic${num}`, (err) => {
+                    if (err) {
+                        console.log('\033[;31m', `创建${fileName}文件夹失败`);
+                        return;
+                    }
+                    console.log('\033[;32m', `创建${fileName}文件夹成功`);
+                    createAnsQue(`./output/picture/${fileName}/topic${num}`);
+                })
             })
         })
     })
 }
 
 function createAnsQue(dir) {
-    fs.mkdir(`${dir}/answer`, (err) => {
-        if (err) {
-            console.log('\033[;31m', `创建 ${dir} 失败`);
-            return
+    fs.exists(`${dir}/answer`, (isExist) => {
+        if (isExist) {
+            return;
         }
-        console.log('\033[;32m', `创建 ${dir}/answer 成功`)
+        fs.mkdir(`${dir}/answer`, (err) => {
+            if (err) {
+                console.log('\033[;31m', `创建 ${dir} 失败`);
+                return
+            }
+            console.log('\033[;32m', `创建 ${dir}/answer 成功`)
+        })
     })
-    fs.mkdir(`${dir}/question`, (err) => {
-        if (err) {
-            console.log('\033[;31m', `创建 ${dir} 失败`);
-            return
+    fs.exists(`${dir}/question`, (isExist) => {
+        if (isExist) {
+            return;
         }
-        console.log('\033[;32m', `创建 ${dir}/question 成功`)
+        fs.mkdir(`${dir}/question`, (err) => {
+            if (err) {
+                console.log('\033[;31m', `创建 ${dir} 失败`);
+                return
+            }
+            console.log('\033[;32m', `创建 ${dir}/answer 成功`)
+        })
     })
 }
 
@@ -132,6 +155,40 @@ fs.readdir(`${topicUrl}`, (err, chapterList) => {
                         })
                     })
                 })
+            })
+        })
+    })
+})
+
+
+// 配图
+fs.readdir(`${drawingUrl}`, (err, gradeList) => {
+    if (err) {
+        console.log('\033[;31m', `${drawingUrl}  失败`);
+        return;
+    }
+    gradeList.forEach((grade) => {
+        if (grade === 'old') {
+            return;
+        }
+        fs.readdir(`${drawingUrl}/${grade}`, (err, subList) => {
+            if (err) {
+                console.log('\033[;31m', `${drawingUrl}/${grade}  失败`);
+                return;
+            }
+            subList.forEach((sub) => {
+                if (sub.indexOf('封面') !== -1) {
+                    return;
+                }
+                const gradeDir = util.getGradeCodebyNum(sub.slice(0,3)).name;
+                const topicDir = util.getSubjectCodeByStr(sub.slice(3, sub.length - 9)).name;
+                getMinImage(`${drawingUrl}/${grade}/${sub}`).then((files) => {
+                    fs.exists(`./output/picture/${gradeDir}/${topicDir}`, (isExist) => {
+                        if (isExist) {
+                            writeFile(`./output/picture/${gradeDir}/${topicDir}/drawing.png`, files);
+                        }
+                    });
+                });
             })
         })
     })
