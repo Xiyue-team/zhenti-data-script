@@ -37,7 +37,7 @@ class Until {
     // 根据专题获取文件夹名称
     getSubjectCode(item) {
         let info = { name: '', num: 0 };
-        const topic = item.gradeName.slice(0, 3);
+        const topic = item.gradeName.split(' ')[0];
         switch (topic) {
             case '专题一': info.name = 'topic1'; info.num = 1; break;
             case '专题二': info.name = 'topic2'; info.num = 2; break;
@@ -48,6 +48,12 @@ class Until {
             case '专题七': info.name = 'topic7'; info.num = 7; break;
             case '专题八': info.name = 'topic8'; info.num = 8; break;
             case '专题九': info.name = 'topic9'; info.num = 9; break;
+            case '专题十': info.name = 'topic10'; info.num = 10; break;
+            case '专题十一': info.name = 'topic11'; info.num = 11; break;
+            case '专题十二': info.name = 'topic12'; info.num = 12; break;
+            case '专题十三': info.name = 'topic13'; info.num = 13; break;
+            case '专题十四': info.name = 'topic14'; info.num = 14; break;
+            case '专题十五': info.name = 'topic15'; info.num = 15; break;
         }
         return info;
     }
@@ -55,7 +61,7 @@ class Until {
     // 根据专题获取文件夹名称
     getSubjectCodeByStr(str, isSlece) {
         let info = { name: '', num: 0, chineseName: '' };
-        let topic = isSlece ? str.slice(3, 6) : str;
+        let topic = isSlece ? str.slice(3, str.length) : str;
         switch (topic) {
             case '专题1': info.name = 'topic1'; info.num = 1; info.chineseName = '专题一'; break;
             case '专题2': info.name = 'topic2'; info.num = 2; info.chineseName = '专题二'; break;
@@ -110,7 +116,7 @@ class Until {
         const dir = url.split(`${topicUrl}/`)[1];
         const info = dir.split('/');
         const grade = info[0][0];
-        const subject = info[1][5];
+        const subject = info[1].slice(5, info[1].length);
         const topic = info[2][2];
         if (!grade || !subject || !topic) {
             console.log('error', {grade: grade, subject: subject, topic: topic});
@@ -142,7 +148,10 @@ class Until {
         }
         if (info[3].indexOf('答案') !== -1 || info[3].indexOf('解析') !== -1) {
             return `${grade}/${subject}/answer/`
-        } 
+        }
+        if (info[3].indexOf('答题卡') !== -1) {
+            return `${grade}/${subject}/card/`
+        }
         return `${grade}/${subject}/question/`
     }
 

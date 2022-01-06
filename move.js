@@ -6,6 +6,8 @@ const imagemin = require('imagemin');
 const imageminMozjpeg = require("imagemin-mozjpeg");
 const imageminPngquant = require('imagemin-pngquant');
 const drawingUrl = require('./config').drawingUrl;
+const jsonStr = fs.readFileSync('./output/zhentiji.json',{flag:'r',encoding:'utf-8'});
+const jsonData = JSON.parse(jsonStr);
 
 // fs.rmdir(`./null`, (err) => {
 //     if(err){
@@ -53,6 +55,7 @@ function createdTopic(gradeName, fileName) {
             fs.exists(`./output/picture/${fileName}/topic${num}`, (isExist) => {
                 if (isExist) {
                     createAnsQue(`./output/picture/${fileName}/topic${num}`);
+                    createCrad(gradeName, num);
                     return;
                 }
                 fs.mkdir(`./output/picture/${fileName}/topic${num}`, (err) => {
@@ -62,6 +65,7 @@ function createdTopic(gradeName, fileName) {
                     }
                     console.log('\033[;32m', `创建${fileName}文件夹成功`);
                     createAnsQue(`./output/picture/${fileName}/topic${num}`);
+                    createCrad(gradeName, num);
                 })
             })
         })
@@ -95,6 +99,45 @@ function createAnsQue(dir) {
     })
 }
 
+// 创建答题卡文件夹
+function createCrad(gradeName, subNum) {
+    const gradeNum = util.getGradeCodebyNum(gradeName).num - 1;
+    let flag = true;
+    if (!jsonData.chapter[gradeNum]) {
+        console.log('\033[;31m', `答题卡 --- jsonData.chapter ${gradeName} null`);
+        return;
+    }
+    if (!jsonData.chapter[gradeNum].subject[subNum - 1]) {
+        console.log('\033[;31m', `答题卡 --- jsonData.chapter ${gradeName} subject[${subNum} - 1] null`);
+        return;
+    }
+    if (!jsonData.chapter[gradeNum].subject[subNum - 1].topic) {
+        console.log('\033[;31m', `答题卡 --- jsonData.chapter ${gradeName} subject[${subNum} - 1].topic null`);
+        return;
+    }
+    jsonData.chapter[gradeNum].subject[subNum - 1].topic.forEach((tpc) => {
+        if (tpc.answerCard) {
+            flag = false;
+        }
+    })
+    if (flag) {
+        return
+    }
+    const fileName = util.getGradeCodebyNum(gradeName).name;
+    fs.exists(`./output/picture/${fileName}/topic${subNum}/card`, (isExist) => {
+        if (isExist) {
+            return;
+        }
+        fs.mkdir(`./output/picture/${fileName}/topic${subNum}/card`, (err) => {
+            if (err) {
+                console.log('\033[;31m', `创建 ./output/picture/${fileName}/topic${subNum}/card 失败`, err);
+                return
+            }
+            console.log('\033[;32m', `创建 ./output/picture/${fileName}/topic${subNum}/card 成功`)
+        })
+    })
+}
+
 /********************* copy图片 ********************************/
 fs.readdir(`${topicUrl}`, (err, chapterList) => {
     if (err) {
@@ -104,13 +147,13 @@ fs.readdir(`${topicUrl}`, (err, chapterList) => {
     chapterList.forEach((chapter) => {
         fs.readdir(`${topicUrl}/${chapter}`, (err, subjectList) => {
             if (err) {
-                console.log('\033[;31m', `${topicUrl}/${chapter}  失败`);
+                console.log('\033[;31m', `${topicUrl}/${chapter}  失败`, err);
                 return;
             }
             subjectList.forEach((topic) => {
                 fs.readdir(`${topicUrl}/${chapter}/${topic}`, (err, nameList) => {
                     if (err) {
-                        console.log('\033[;31m', `${topicUrl}/${chapter}/${topic}  失败`);
+                        console.log('\033[;31m', `${topicUrl}/${chapter}/${topic}  失败`, err);
                         return;
                     }
                     nameList.forEach((name) => {
@@ -141,6 +184,7 @@ fs.readdir(`${topicUrl}`, (err, chapterList) => {
                                         return;
                                     }
                                     const picName = util.getPicureNameByURL(url);
+
                                     if (!picName) {
                                         console.log('\033[;31m', 'error' + url);
                                         return;
@@ -149,6 +193,9 @@ fs.readdir(`${topicUrl}`, (err, chapterList) => {
                                     // 优化图片
                                     getMinImage(url).then((files) => {
                                         writeFile(`./output/picture/${dir}${picName}.png`, files);
+                                    }).catch(() => {
+                                        console.log(url);
+                                        console.log(`获取优化图片 ${url} 失败`);
                                     });
                                 })
                             })
@@ -177,7 +224,17 @@ fs.readdir(`${drawingUrl}`, (err, gradeList) => {
                 return;
             }
             subList.forEach((sub) => {
-                if (sub.indexOf('封面') !== -1) {
+                if (sub.indexOf('@3x') !== -1) {
+                    const gradeDir = util.getGradeCode(sub.slice(0,3)).name;
+                    getMinImage(`${drawingUrl}/${grade}/${sub}`).then((files) => {
+                        fs.exists(`./output/picture/${gradeDir}`, (isExist) => {
+                            if (isExist) {
+                                writeFile(`./output/picture/${gradeDir}/coverImg.png`, files);
+                            }
+                        });
+                    }).catch(() => {
+                        console.log(`获取${drawingUrl}/${grade}/${sub} 失败`);
+                    });
                     return;
                 }
                 const gradeDir = util.getGradeCodebyNum(sub.slice(0,3)).name;
@@ -188,6 +245,8 @@ fs.readdir(`${drawingUrl}`, (err, gradeList) => {
                             writeFile(`./output/picture/${gradeDir}/${topicDir}/drawing.png`, files);
                         }
                     });
+                }).catch(() => {
+                    console.log(`获取${drawingUrl}/${grade}/${sub} 失败`);
                 });
             })
         })
@@ -195,15 +254,18 @@ fs.readdir(`${drawingUrl}`, (err, gradeList) => {
 })
 
 async function getMinImage(url) {
-    const files = await imagemin([url], {
-        plugins: [
-            imageminMozjpeg(),
-            imageminPngquant({
-                quality: [0.6, 0.8]
-            })
-        ]
-    });
-    return files[0].data;
+    try {
+        const files = await imagemin([url], {
+            plugins: [
+                imageminMozjpeg(),
+                imageminPngquant()
+            ]
+        });
+
+        return files[0].data;
+    } catch (err) {
+        console.log('^^^^^^^^^^^^^^^^^', err);
+    }
 }
 
 function writeFile(url, files) {

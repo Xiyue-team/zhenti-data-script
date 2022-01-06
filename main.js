@@ -6,6 +6,7 @@ const Components = require('./entity/Components');
 const { nanoid } = require('nanoid')
 const jsonUrl = require('./config').jsonUrl;
 const modifyVersion = require('./config').modifyVersion;
+const topicType = require('./config').topicType;
 
 const fs  = require('fs');
 
@@ -81,14 +82,15 @@ json.forEach((item) => {
                     `${until.getGradeCode(item.grade).name}/${until.getSubjectCode(item).name}/drawing.png`);
                 subjectComponents.forEach((component) => {
                     if (component.grade === item.grade && component.gradeName === item.gradeName) {
-                        const comp = new Components();
-                        comp.componentType = component['subjectComponent'].split('/')[0].replace(/^\s*|\s*$/g,"");
-                        comp.bizId = component['subjectComponent'] .split(',')[1].replace(/^\s*|\s*$/g,"");
-                        const fileName = comp.componentType === 'widget' ? 'widget' : 'video';
-                        comp.url = "${workspace}/video/" +
-                            `${component['subjectComponent'].split('/')[1].split(',')[0].replace(/^\s*|\s*$/g,"")}`;
-                        comp.coverImg = "${workspace}/img/" +
-                            `${until.getGradeCode(item.grade).name}/${until.getSubjectCode(item).name}/${fileName}/${comp.bizId}.png`
+                        // const comp = new Components();
+                        // comp.componentType = component['subjectComponent'].split('/')[0].replace(/^\s*|\s*$/g,"");
+                        // comp.bizId = component['subjectComponent'] .split(',')[1].replace(/^\s*|\s*$/g,"");
+                        // const fileName = comp.componentType === 'widget' ? 'widget' : 'video';
+                        // comp.url = "${workspace}/video/" +
+                        //     `${component['subjectComponent'].split('/')[1].split(',')[0].replace(/^\s*|\s*$/g,"")}`;
+                        // comp.coverImg = "${workspace}/img/" +
+                        //     `${until.getGradeCode(item.grade).name}/${until.getSubjectCode(item).name}/${fileName}/${comp.bizId}.png`
+                        const comp = getComponents(component['subjectComponent'], item)
                         sub.components.push(comp);
                     }
                 })
@@ -107,15 +109,38 @@ json.forEach((item) => {
         if (item.grade === chapter.moduleTitle) {
             chapter.subject.forEach((sub, subIndex) => {
                 if (item.gradeName === sub.title) {
-                    const tpc = {
+                    const textTpc = {
                         question: { id: '', type: '', src: '' },
                         answer: { id: '', src: '' }
                     };
+                    const figureTpc = {
+                        question: { id: '', type: '', src: '' },
+                        answer: { id: '', src: '' },
+                        answerCard: {id: '', src: ''}
+                    }
+                    const videoTpc = {
+                        question: { id: '', type: '', src: '' },
+                        answer: { id: '', src: '' },
+                        components: []
+                    }
+                    let tpc = item.topicType === topicType.figure ? figureTpc : item['topicComponent'] !== '' ? videoTpc : textTpc;
+                    if (item.topicType === topicType.figure && item['topicComponent'] !== '') {
+                        tpc = {
+                            question: { id: '', type: '', src: '' },
+                            answer: { id: '', src: '' },
+                            answerCard: {id: '', src: ''},
+                            components: []
+                        }
+                    }
                     tpc.question.type = item.topicType;
                     tpc.question.src = "${workspace}/img/" +
                         `${until.getGradeCode(item.grade).name}/${until.getSubjectCode(item).name}/question/${until.getPictureName(item)}.png`
                     tpc.answer.src = "${workspace}/img/" +
                         `${until.getGradeCode(item.grade).name}/${until.getSubjectCode(item).name}/answer/${until.getPictureName(item)}.png`
+                    if (item.topicType === topicType.figure) {
+                        tpc.answerCard.src = "${workspace}/img/" +
+                            `${until.getGradeCode(item.grade).name}/${until.getSubjectCode(item).name}/card/${until.getPictureName(item)}.png`
+                    }
                     if (item[modifyVersion]) {
                         tpc.question.id = nanoid();
                         console.log('\033[;32m', `${until.getPictureName(item)}`, '---- update new id');
@@ -126,11 +151,12 @@ json.forEach((item) => {
                         console.log('\033[;33m', `${until.getPictureName(item)}`, '---- non-existent new id',);
                     }
                     // todo 题目素材
-                    // topicComponents.forEach((componet) => {
-                    //     if (item.grade === componet.grade && item.gradeName === componet.gradeName && item.topic === componet.topic) {
-                    //
-                    //     }
-                    // })
+                    topicComponents.forEach((component) => {
+                        if (item.grade === component.grade && item.gradeName === component.gradeName && item.topic === component.topic) {
+                            const comp = getComponents(component['topicComponent'], item)
+                            tpc.components.push(comp);
+                        }
+                    })
                     sub.topic.push(tpc);
                 }
                 sub.total = sub.topic.length;
@@ -140,12 +166,27 @@ json.forEach((item) => {
 })
 function handleTopicIsSave(chapterIndex, subIndex, tpc) {
     let id = '';
+    if (!oldJsonData.chapter[chapterIndex].subject[subIndex]) {
+        return;
+    }
     oldJsonData.chapter[chapterIndex].subject[subIndex].topic.forEach((topic) => {
         if (topic.question.src === tpc.question.src) {
             id = topic.question.id;
         }
     })
     return id;
+}
+
+function getComponents(com, item) {
+    const comp = new Components();
+    comp.componentType = com.split('/')[0].replace(/^\s*|\s*$/g,"");
+    comp.bizId = com.split(',')[1].replace(/^\s*|\s*$/g,"");
+    const fileName = comp.componentType === 'widget' ? 'widget' : 'video';
+    comp.url = "${workspace}/video/" +
+        `${com.split('/')[1].split(',')[0].replace(/^\s*|\s*$/g,"")}`;
+    comp.coverImg = "${workspace}/img/" +
+        `${until.getGradeCode(item.grade).name}/${until.getSubjectCode(item).name}/${fileName}/${comp.bizId}.png`;
+    return comp;
 }
 
 ebook.chapter.forEach((chapter) => {

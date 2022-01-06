@@ -35,27 +35,30 @@ fs.readdir(`${videoUrl}`, (err, data) => {
                         console.log('\033[;31m', `读取失败 ${videoUrl}/${chapter}/${subject}`, err)
                         return;
                     }
-                    const url = `${videoUrl}/${chapter}/${subject}/${data[0]}`;
-                    fs.readFile(url, (err, data) => {
-                        if (err) {
-                            console.log('\033[;31m', `${url} 获取图片失败`);
-                            return;
-                        }
-                        let bizId = 0
-                        jsonData.chapter.forEach((jsonChapter) => {
-                            if (jsonChapter.moduleTitle !== util.getGradeCodebyNum(chapter).chineseName){
+                    data.forEach((pic) => {
+                        const url = `${videoUrl}/${chapter}/${subject}/${pic}`;
+                        fs.readFile(url, (err, data) => {
+                            if (err) {
+                                console.log('\033[;31m', `${url} 获取图片失败`);
                                 return;
                             }
-                            jsonChapter.subject.forEach((jsonSubject) => {
-                                if(jsonSubject.title.slice(0, 3) === util.getSubjectCodeByStr(subject).chineseName) {
-                                    bizId = jsonSubject.components[0].bizId;
-                                }
-                            })
+                            // let bizId = 0
+                            // jsonData.chapter.forEach((jsonChapter) => {
+                            //     if (jsonChapter.moduleTitle !== util.getGradeCodebyNum(chapter).chineseName){
+                            //         return;
+                            //     }
+                            //     jsonChapter.subject.forEach((jsonSubject) => {
+                            //         if(jsonSubject.title.slice(0, 3) === util.getSubjectCodeByStr(subject).chineseName) {
+                            //             bizId = jsonSubject.components[0].bizId;
+                            //         }
+                            //     })
+                            // })
+                            const bizId = pic.split('.')[0];
+                            // 优化图片
+                            getMinImage(url).then((files) => {
+                                writeFile(`./output/picture/${subUrl}/${bizId}.png`, files);
+                            });
                         })
-                        // 优化图片
-                        getMinImage(url).then((files) => {
-                            writeFile(`./output/picture/${subUrl}/${bizId}.png`, files);
-                        });
                     })
                 })
             })
